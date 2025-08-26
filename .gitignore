@@ -1,0 +1,33 @@
+Para utilizar, copie o conteúdo abaixo em um arquivo chamado .gitignore na pasta principal do seu projeto.
+
+# Executáveis binários e arquivos de build
+# Binary executables and build files
+*.exe
+*.test
+*.prof
+
+# Diretório de cache de módulos e pacotes
+# Module and package cache directory
+.cache
+/pkg/
+/bin/
+
+# Cache do Go build
+# Go build cache
+.go-build/
+
+# Cache de testes do Go
+# Go test cache
+go.test
+test.out
+
+# Arquivos de IDE e editores
+# IDE and editor files
+.idea/
+.vscode/
+.DS_Store
+
+# Diretório de dependências de módulos
+# Module dependency directory
+/vendor/
+go.sum
