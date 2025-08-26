@@ -89,6 +89,9 @@ func main() {
 
 Open [http://localhost:8080](http://localhost:8080) to see heap memory usage in real time.
 
+<img width="887" height="442" alt="image" src="https://github.com/user-attachments/assets/baf9497c-d599-41c8-ad48-8c0f51389509" />
+
+
 ---
 
 ### 🧪 Running Tests & Benchmarks
