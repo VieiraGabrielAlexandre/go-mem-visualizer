@@ -1,71 +1,52 @@
 package memvisualizer_test
 
 import (
-	"github.com/VieiraGabrielAlexandre/go-mem-visualizer/memvisualizer"
-	"net/http"
-	"net/http/httptest"
-	"strings"
+	"runtime"
 	"testing"
+	"time"
+
+	// Import your library package for testing.
+	"github.com/VieiraGabrielAlexandre/go-mem-visualizer/memvisualizer"
 )
 
-// TestGetAllocatedMemorySuccess testa a função getAllocatedMemory para um caso de sucesso.
-func TestGetAllocatedMemorySuccess(t *testing.T) {
-	// Prepara a saída esperada do pprof para o teste.
-	pprofOutput := `# runtime.MemStats
-# HeapInuse = 105848832`
+// TestGetAllocatedMemory checks if the function from your library
+// returns an allocated memory value greater than zero.
+func TestGetAllocatedMemory(t *testing.T) {
+	// Get the initial allocated memory value before the test.
+	var initialMem runtime.MemStats
+	runtime.ReadMemStats(&initialMem)
 
-	expectedMemory := uint64(105848832)
+	// Define an allocation size for the test (10 MB).
+	const allocationSize = 10 * 1024 * 1024
 
-	// Cria um servidor HTTP de teste (mock server) que responde com a saída do pprof.
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/debug/pprof/heap" {
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(pprofOutput))
-		} else {
-			w.WriteHeader(http.StatusNotFound)
-		}
-	}))
-	defer server.Close()
+	// Allocate memory.
+	testData := make([]byte, allocationSize)
 
-	// Chama a função a ser testada usando a URL do servidor de teste.
-	gotMemory, err := memvisualizer.GetAllocatedMemory(server.URL)
-	if err != nil {
-		t.Fatalf("getAllocatedMemory() retornou um erro inesperado: %v", err)
-	}
+	// Ensure the memory is not garbage collected immediately.
+	runtime.KeepAlive(testData)
+	time.Sleep(100 * time.Millisecond) // Small delay to allow the system to update metrics.
 
-	// Verifica se o valor retornado é o mesmo que o esperado.
-	if gotMemory != expectedMemory {
-		t.Errorf("getAllocatedMemory() retornou %d; esperava %d", gotMemory, expectedMemory)
+	// Call the function from your library to get the allocated memory.
+	currentAllocated := memvisualizer.GetAllocatedMemory()
+
+	// Check if the current allocation is greater than the initial one.
+	if currentAllocated <= initialMem.HeapAlloc {
+		t.Errorf("Expected allocated memory to be greater than %d bytes, but got %d bytes.", initialMem.HeapAlloc, currentAllocated)
 	}
 }
 
-// TestGetAllocatedMemoryFail testa a função quando a métrica não é encontrada.
-func TestGetAllocatedMemoryFail(t *testing.T) {
-	// Prepara uma saída de pprof que não contém a métrica esperada.
-	pprofOutput := `
-# runtime.MemStats
-# HeapReleased = 2146304
-`
+// BenchmarkGetAllocatedMemory measures the performance of the GetAllocatedMemory function.
+// To run, use: go test -bench=.
+func BenchmarkGetAllocatedMemory(b *testing.B) {
+	// Define an allocation size for the test (10 MB).
+	const allocationSize = 10 * 1024 * 1024
+	testData := make([]byte, allocationSize)
+	runtime.KeepAlive(testData)
 
-	// Cria um servidor HTTP de teste (mock server).
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/debug/pprof/heap" {
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(pprofOutput))
-		} else {
-			w.WriteHeader(http.StatusNotFound)
-		}
-	}))
-	defer server.Close()
-
-	// Chama a função e espera um erro.
-	_, err := memvisualizer.GetAllocatedMemory(server.URL)
-	if err == nil {
-		t.Errorf("getAllocatedMemory() did not return an error, but it should have failed")
-	}
-
-	// Verifica se a mensagem de erro contém a substring esperada.
-	if !strings.Contains(err.Error(), "could not find memory metric") {
-		t.Errorf("unexpected error message: %v", err)
+	// The b.N loop is automatically generated and optimizes the number of iterations
+	// to obtain an accurate measurement.
+	for i := 0; i < b.N; i++ {
+		// This is the line we're measuring performance for.
+		_ = memvisualizer.GetAllocatedMemory()
 	}
 }
