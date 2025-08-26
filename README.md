@@ -1,27 +1,115 @@
 # go-mem-visualizer
 
-![Status do Build](https://img.shields.io/badge/status-in%20progress-blue.svg)
-![Licença](https://img.shields.io/badge/license-MIT-green.svg)
+![Build Status](https://img.shields.io/badge/status-stable-blue.svg)
+![License](https://img.shields.io/badge/license-MIT-green.svg)
 
 ---
 
-### O que é o go-mem-visualizer?
+### 📖 What is `go-mem-visualizer`?
 
-O `go-mem-visualizer` é uma ferramenta interativa e visual para análise de performance e consumo de memória de aplicações Go. Ele se conecta ao endpoint de profiling nativo do Go (`pprof`) e transforma dados brutos de alocação de memória em gráficos e relatórios detalhados, ajudando desenvolvedores a identificar rapidamente vazamentos de memória, gargalos de performance e otimizar o uso de recursos.
+`go-mem-visualizer` is a lightweight Go library for **inspecting and visualizing memory usage** in your applications.
+It eliminates the need to configure `pprof` servers or manually parse memory stats, giving you both **real-time metrics** and an **optional web dashboard**.
 
-Diferente da interface padrão do `pprof`, esta ferramenta oferece uma experiência de usuário intuitiva e visualmente rica, permitindo que você:
+With it, you can:
 
-- Visualize o crescimento e o comportamento da memória heap em tempo real.
-- Compare perfis de memória (`diffing`) para identificar alocações que causam leaks.
-- Analise flame graphs de forma mais detalhada e interativa.
-- Receba sugestões de otimização baseadas em padrões comuns de alocação.
+* 📊 Retrieve real-time memory allocation with a single line of code.
+* 🌐 Launch a local **web interface** to visualize heap memory usage in real-time.
+* 🔎 Automatically format memory values into human-readable units (`KB`, `MB`, `GB`).
 
-### Por que usar o go-mem-visualizer?
+---
 
-A otimização de memória é crucial para aplicações de alta performance, especialmente aquelas de longa duração. Embora o Go tenha um garbage collector eficiente, alocações desnecessárias podem causar latência e consumo excessivo de recursos. O `go-mem-visualizer` simplifica a tarefa de diagnóstico, tornando a análise de memória acessível e eficiente.
+### ⚡ Why use it?
 
-### Como Instalar
+Memory optimization is crucial for Go applications, especially long-running or resource-intensive ones.
+While Go’s garbage collector is efficient, unnecessary allocations can lead to **higher latency** and **excessive memory consumption**.
+
+`go-mem-visualizer` makes diagnosis simple by exposing memory metrics in a **developer-friendly way**: either as raw values or through a **live dashboard**.
+
+---
+
+### 📦 Installation
 
 ```bash
-# Baixe a ferramenta diretamente via go get
-go install [github.com/](https://github.com/)[seu-usuario]/go-mem-visualizer@latest
+go get github.com/VieiraGabrielAlexandre/go-mem-visualizer
+```
+
+---
+
+### 🛠 Usage
+
+#### 1. Get and Format Memory Metrics
+
+Retrieve allocated memory and format it into a human-readable string:
+
+```go
+package main
+
+import (
+    "fmt"
+    "time"
+
+    "github.com/VieiraGabrielAlexandre/go-mem-visualizer/memvisualizer"
+)
+
+func main() {
+    var data []byte
+
+    for i := 0; i < 5; i++ {
+        // Simulate memory consumption
+        data = append(data, make([]byte, 1024*1024)...)
+
+        allocated := memvisualizer.GetAllocatedMemory()
+        formatted := memvisualizer.FormatMemory(allocated)
+
+        fmt.Printf("Allocated memory: %s\n", formatted)
+
+        time.Sleep(2 * time.Second)
+    }
+}
+```
+
+---
+
+#### 2. Start the Monitoring Web Dashboard
+
+Spin up a lightweight local server with an interactive dashboard:
+
+```go
+package main
+
+import (
+	"github.com/VieiraGabrielAlexandre/go-mem-visualizer/memvisualizer"
+)
+
+func main() {
+	// Start the web server and visualization
+	memvisualizer.GenerateGraphics()
+}
+```
+
+Open [http://localhost:8080](http://localhost:8080) to see heap memory usage in real time.
+
+---
+
+### 🧪 Running Tests & Benchmarks
+
+```bash
+# Run unit tests
+go test ./...
+
+# Run benchmarks
+go test -bench=. ./...
+```
+
+---
+
+### 🤝 Contributing
+
+Contributions are welcome!
+Feel free to **open an issue** or **submit a pull request** on the [GitHub repository](https://github.com/VieiraGabrielAlexandre/go-mem-visualizer).
+
+---
+
+### 📜 License
+
+This project is licensed under the [MIT License](./LICENSE).
