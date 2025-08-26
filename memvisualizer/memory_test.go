@@ -1,21 +1,22 @@
-package main
+package memvisualizer_test
 
 import (
+	"github.com/VieiraGabrielAlexandre/go-mem-visualizer/memvisualizer"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 )
 
-// TestGetAllocatedMemorySuccess tests the getAllocatedMemory function for a successful case.
+// TestGetAllocatedMemorySuccess testa a função getAllocatedMemory para um caso de sucesso.
 func TestGetAllocatedMemorySuccess(t *testing.T) {
-	// Prepare the expected pprof output for the test.
+	// Prepara a saída esperada do pprof para o teste.
 	pprofOutput := `# runtime.MemStats
 # HeapInuse = 105848832`
 
 	expectedMemory := uint64(105848832)
 
-	// Create a test HTTP server (mock server) that responds with the pprof output.
+	// Cria um servidor HTTP de teste (mock server) que responde com a saída do pprof.
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/debug/pprof/heap" {
 			w.WriteHeader(http.StatusOK)
@@ -26,27 +27,27 @@ func TestGetAllocatedMemorySuccess(t *testing.T) {
 	}))
 	defer server.Close()
 
-	// Call the function to be tested using the test server's URL.
-	gotMemory, err := getAllocatedMemory(server.URL)
+	// Chama a função a ser testada usando a URL do servidor de teste.
+	gotMemory, err := memvisualizer.GetAllocatedMemory(server.URL)
 	if err != nil {
-		t.Fatalf("getAllocatedMemory() returned an unexpected error: %v", err)
+		t.Fatalf("getAllocatedMemory() retornou um erro inesperado: %v", err)
 	}
 
-	// Check if the returned value is the same as the expected value.
+	// Verifica se o valor retornado é o mesmo que o esperado.
 	if gotMemory != expectedMemory {
-		t.Errorf("getAllocatedMemory() returned %d; expected %d", gotMemory, expectedMemory)
+		t.Errorf("getAllocatedMemory() retornou %d; esperava %d", gotMemory, expectedMemory)
 	}
 }
 
-// TestGetAllocatedMemoryFail tests the function when the metric is not found.
+// TestGetAllocatedMemoryFail testa a função quando a métrica não é encontrada.
 func TestGetAllocatedMemoryFail(t *testing.T) {
-	// Prepare a pprof output that does not contain the expected metric.
+	// Prepara uma saída de pprof que não contém a métrica esperada.
 	pprofOutput := `
 # runtime.MemStats
 # HeapReleased = 2146304
 `
 
-	// Create a test HTTP server (mock server).
+	// Cria um servidor HTTP de teste (mock server).
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/debug/pprof/heap" {
 			w.WriteHeader(http.StatusOK)
@@ -57,13 +58,13 @@ func TestGetAllocatedMemoryFail(t *testing.T) {
 	}))
 	defer server.Close()
 
-	// Call the function and expect an error.
-	_, err := getAllocatedMemory(server.URL)
+	// Chama a função e espera um erro.
+	_, err := memvisualizer.GetAllocatedMemory(server.URL)
 	if err == nil {
 		t.Errorf("getAllocatedMemory() did not return an error, but it should have failed")
 	}
 
-	// Check if the error message contains the expected substring.
+	// Verifica se a mensagem de erro contém a substring esperada.
 	if !strings.Contains(err.Error(), "could not find memory metric") {
 		t.Errorf("unexpected error message: %v", err)
 	}
